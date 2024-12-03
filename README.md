@@ -15,7 +15,7 @@ Python library to generate passes i.e (.pkpass) files compatible with Apple Wall
 To easily install or upgrade to the latest release, use pip.
 
 ```
-$ pip install applepassgenerator
+$ pip install apple-wallet-pass
 ```
 
 ### 🍎 Apple docs
@@ -59,34 +59,4 @@ To start using the lib, some Apple files are needed, as well as some action in o
 
 ### 🚀 Usage
 
-```python
-from applepassgenerator import ApplePassGeneratorClient
-from applepassgenerator.models import EventTicket
-
-card_info = EventTicket()
-card_info.add_primary_field('name', 'Tony Stark', 'Name')
-card_info.add_secondary_field('loc', 'USA', 'Country')
-
-team_identifier = "1234ABCDEF"
-pass_type_identifier = "pass.com.project.example"
-organization_name = "Primedigital Global"
-
-applepassgenerator_client = ApplePassGeneratorClient(team_identifier, pass_type_identifier, organization_name)
-apple_pass = applepassgenerator_client.get_pass(card_info)
-
-# Add logo/icon/strip image to file
-apple_pass.add_file("logo.png", open("<path>/logo.png", "rb"))
-apple_pass.add_file("icon.png", open("<path>/icon.png", "rb"))
-
-CERTIFICATE_PATH = "<path-to-file>/certificate.pem"
-PASSWORD_KEY = "<path-to-file>/password.key"
-WWDR_CERTIFICATE_PATH = "<path-to-file>/wwdr.pem"
-CERTIFICATE_PASSWORD = "<password>"
-OUTPUT_PASS_NAME = "mypass.pkpass"
-
-apple_pass.create(CERTIFICATE_PATH, PASSWORD_KEY, WWDR_CERTIFICATE_PATH, CERTIFICATE_PASSWORD, OUTPUT_PASS_NAME)
-```
-
-### Code of Conduct
-
-In order to foster a kind, inclusive, and harassment-free community, we have a code of conduct, which can be found [here](CODE_OF_CONDUCT.md). We ask you to treat everyone as a smart human programmer that shares an interest in Python and Apple Pass Generator with you.
+TODO
