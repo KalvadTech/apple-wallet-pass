@@ -1,0 +1,34 @@
+# Poetry Ref: https://python-poetry.org/docs/pyproject/
+[tool.poetry]
+name = "apple-wallet-pass"
+version = "0.1.0"
+description = "Python package to create passes compatible with Apple Wallet. (forked from Primedigital Global)"
+authors = ["Loic Tosser <loic@kalvad.com>"]
+license = "MIT"
+
+readme = "README.md"
+packages = [{ include = "apple_wallet_pass", from = "src" }]
+
+repository = "https://github.com/KalvadTech/apple-wallet-pass"
+
+keywords = ["apple pass", "apple wallet", "passbook", "applepassgenerator"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+cryptography = ">=38.0.4"
+
+[tool.poetry.dev-dependencies]
+ruff = "^0.8.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

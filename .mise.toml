@@ -1,0 +1,5 @@
+[tools]
+python = "3.13" # [optional] specifies Python version for venv
+
+[env]
+_.python.venv = { path = "env", create = true } # Auto-create venv if missing

@@ -1,0 +1,4 @@
+exclude = ["env"]
+
+[lint]
+select = ["F", "S", "ERA", "I", "C90"]
