@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
-from applepassgenerator.enums import (
+from apple_wallet_pass.enums import (
     Alignment,
     BarcodeFormat,
     DateStyle,

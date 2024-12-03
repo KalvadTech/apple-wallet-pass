@@ -9,8 +9,8 @@ from io import BufferedReader, BytesIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-from applepassgenerator.enums import BarcodeFormat
-from applepassgenerator.fields import Barcode
+from apple_wallet_pass.enums import BarcodeFormat
+from apple_wallet_pass.fields import Barcode
 
 # Third Party Stuff
 from cryptography import x509

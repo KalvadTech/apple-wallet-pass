@@ -5,8 +5,8 @@ Contains classes for different types of Apple Wallet pass information structures
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from applepassgenerator.enums import TransitType
-from applepassgenerator.fields import Field
+from apple_wallet_pass.enums import TransitType
+from apple_wallet_pass.fields import Field
 
 
 @dataclass

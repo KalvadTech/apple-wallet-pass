@@ -11,7 +11,7 @@ packages = [{ include = "apple_wallet_pass", from = "src" }]
 
 repository = "https://github.com/KalvadTech/apple-wallet-pass"
 
-keywords = ["apple pass", "apple wallet", "passbook", "applepassgenerator"]
+keywords = ["apple pass", "apple wallet", "passbook", "apple_wallet_pass"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
