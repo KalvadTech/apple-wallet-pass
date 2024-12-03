@@ -5,7 +5,7 @@ Contains classes for different types of Apple Wallet pass information structures
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from apple_wallet_pass.enums import TransitType
+from apple_wallet_pass.enums import Alignment, TransitType
 from apple_wallet_pass.fields import Field
 
 
@@ -20,7 +20,11 @@ class PassInformation:
     auxiliary_fields: List[Field] = field(default_factory=list)
 
     def add_header_field(
-        self, key: str, value: str, label: Optional[str] = None
+        self,
+        key: str,
+        value: str,
+        label: Optional[str] = None,
+        text_alignment: Alignment = Alignment.NATURAL,
     ) -> None:
         """Add a field to the header section of the pass.
 
@@ -28,30 +32,77 @@ class PassInformation:
             key: Unique identifier for the field
             value: Value to be displayed
             label: Optional label for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
         """
-        self.header_fields.append(Field(key, value, label))
+        self.header_fields.append(Field(key, value, label, text_alignment))
 
     def add_primary_field(
-        self, key: str, value: str, label: Optional[str] = None
+        self,
+        key: str,
+        value: str,
+        label: Optional[str] = None,
+        text_alignment: Alignment = Alignment.NATURAL,
     ) -> None:
-        """Add a field to the primary section of the pass."""
-        self.primary_fields.append(Field(key, value, label))
+        """Add a field to the primary section of the pass.
+
+        Args:
+            key: Unique identifier for the field
+            value: Value to be displayed
+            label: Optional label for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
+        """
+        self.primary_fields.append(Field(key, value, label, text_alignment))
 
     def add_secondary_field(
-        self, key: str, value: str, label: Optional[str] = None
+        self,
+        key: str,
+        value: str,
+        label: Optional[str] = None,
+        text_alignment: Alignment = Alignment.NATURAL,
     ) -> None:
-        """Add a field to the secondary section of the pass."""
-        self.secondary_fields.append(Field(key, value, label))
+        """Add a field to the secondary section of the pass.
 
-    def add_back_field(self, key: str, value: str, label: Optional[str] = None) -> None:
-        """Add a field to the back section of the pass."""
-        self.back_fields.append(Field(key, value, label))
+        Args:
+            key: Unique identifier for the field
+            value: Value to be displayed
+            label: Optional label for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
+        """
+        self.secondary_fields.append(Field(key, value, label, text_alignment))
+
+    def add_back_field(
+        self,
+        key: str,
+        value: str,
+        label: Optional[str] = None,
+        text_alignment: Alignment = Alignment.NATURAL,
+    ) -> None:
+        """Add a field to the back section of the pass.
+
+        Args:
+            key: Unique identifier for the field
+            value: Value to be displayed
+            label: Optional label for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
+        """
+        self.back_fields.append(Field(key, value, label, text_alignment))
 
     def add_auxiliary_field(
-        self, key: str, value: str, label: Optional[str] = None
+        self,
+        key: str,
+        value: str,
+        label: Optional[str] = None,
+        text_alignment: Alignment = Alignment.NATURAL,
     ) -> None:
-        """Add a field to the auxiliary section of the pass."""
-        self.auxiliary_fields.append(Field(key, value, label))
+        """Add a field to the auxiliary section of the pass.
+
+        Args:
+            key: Unique identifier for the field
+            value: Value to be displayed
+            label: Optional label for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
+        """
+        self.auxiliary_fields.append(Field(key, value, label, text_alignment))
 
     def json_dict(self) -> Dict[str, Any]:
         """Convert the pass information to a dictionary format for JSON serialization."""

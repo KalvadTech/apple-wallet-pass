@@ -8,7 +8,6 @@ class Alignment(str, Enum):
     LEFT = "PKTextAlignmentLeft"
     CENTER = "PKTextAlignmentCenter"
     RIGHT = "PKTextAlignmentRight"
-    JUSTIFIED = "PKTextAlignmentJustified"
     NATURAL = "PKTextAlignmentNatural"
 
 

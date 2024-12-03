@@ -13,7 +13,13 @@ from apple_wallet_pass.enums import (
 class Field:
     """Base class for all pass fields."""
 
-    def __init__(self, key: str, value: Any, label: str = "") -> None:
+    def __init__(
+        self,
+        key: str,
+        value: Any,
+        label: str = "",
+        text_alignment: Alignment = Alignment.NATURAL,
+    ) -> None:
         """
         Initialize a basic field.
 
@@ -21,6 +27,7 @@ class Field:
             key: Unique identifier for the field within its scope
             value: Value of the field
             label: Optional label text for the field
+            text_alignment: Optional text alignment (defaults to LEFT)
 
         Raises:
             ValueError: If key is empty or None
@@ -32,7 +39,7 @@ class Field:
         self._value = value
         self._label = label
         self._change_message = ""
-        self._text_alignment = Alignment.LEFT
+        self._text_alignment = text_alignment
 
     @property
     def key(self) -> str:
