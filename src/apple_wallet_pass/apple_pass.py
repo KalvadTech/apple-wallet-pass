@@ -9,13 +9,13 @@ from io import BufferedReader, BytesIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
+from applepassgenerator.enums import BarcodeFormat
+from applepassgenerator.fields import Barcode
+
 # Third Party Stuff
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
-
-from applepassgenerator.enums import BarcodeFormat
-from applepassgenerator.fields import Barcode
 
 
 @dataclass
@@ -87,8 +87,8 @@ class ApplePass:
         certificate: Union[str, Path],
         key: Union[str, Path],
         wwdr_certificate: Union[str, Path],
+        pass_path: Union[str, Path],
         password: Optional[str] = None,
-        pass_path: Optional[Union[str, Path]] = "pass.pkpass",
     ) -> str:
         """
         Create and sign the pass package.
