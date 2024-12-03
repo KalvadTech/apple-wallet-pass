@@ -9,13 +9,13 @@ from io import BufferedReader, BytesIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
-from apple_wallet_pass.enums import BarcodeFormat
-from apple_wallet_pass.fields import Barcode
-
 # Third Party Stuff
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
+
+from apple_wallet_pass.enums import BarcodeFormat
+from apple_wallet_pass.fields import Barcode
 
 
 @dataclass
