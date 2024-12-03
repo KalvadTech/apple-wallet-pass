@@ -132,7 +132,7 @@ class ApplePass:
         """
         Creates the hashes for all the files included in the pass file.
         """
-        self._hashes["pass.json"] = hashlib.sha1(pass_json.encode("UTF-16")).hexdigest()
+        self._hashes["pass.json"] = hashlib.sha1(pass_json.encode("utf-8")).hexdigest()
         for filename, filedata in self._files.items():
             if isinstance(filedata, (bytes, bytearray)):
                 data = filedata
@@ -140,7 +140,7 @@ class ApplePass:
                 filedata.seek(0)
                 data = filedata.read()
             elif isinstance(filedata, str):
-                data = filedata.encode("utf-16")
+                data = filedata.encode("utf-8")
             else:
                 raise TypeError(
                     f"Unsupported file data type for {filename}: {type(filedata)}"
@@ -159,7 +159,7 @@ class ApplePass:
         """
         cert = x509.load_pem_x509_certificate(self._read_file_bytes(certificate))
         if password is not None:
-            password = password.encode("UTF-16")
+            password = password.encode("utf-8")
         priv_key = serialization.load_pem_private_key(
             self._read_file_bytes(key), password=password
         )
@@ -170,7 +170,7 @@ class ApplePass:
         options = [pkcs7.PKCS7Options.DetachedSignature]
         return (
             pkcs7.PKCS7SignatureBuilder()
-            .set_data(manifest.encode("UTF-16"))
+            .set_data(manifest.encode("utf-8"))
             .add_signer(cert, priv_key, hashes.SHA1())
             .add_certificate(wwdr_cert)
             .sign(serialization.Encoding.DER, options)
@@ -190,7 +190,7 @@ class ApplePass:
                 filedata.seek(0)
                 data = filedata.read()
             elif isinstance(filedata, str):
-                data = filedata.encode("utf-16")
+                data = filedata.encode("utf-8")
             else:
                 raise TypeError(
                     f"Unsupported file data type for {filename}: {type(filedata)}"
