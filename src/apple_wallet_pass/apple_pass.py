@@ -5,14 +5,18 @@ import hashlib
 import json
 import zipfile
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from io import BufferedReader, BytesIO
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 # Third Party Stuff
+from asn1crypto import cms as asn1_cms
+from asn1crypto import core as asn1_core
+from asn1crypto import x509 as asn1_x509
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.serialization import pkcs7
+from cryptography.hazmat.primitives.asymmetric import padding
 
 from apple_wallet_pass.enums import BarcodeFormat
 from apple_wallet_pass.fields import Barcode
@@ -153,9 +157,14 @@ class ApplePass:
     ):
         """
         Creates a signature (DER encoded) of the manifest.
-        Rewritten to use cryptography library instead of M2Crypto
         The manifest is the file
         containing a list of files included in the pass file (and their hashes).
+
+        Apple mandates a PKCS#7 detached signature using SHA1. cryptography
+        >= 40 refuses SHA1 in its PKCS7SignatureBuilder, so the CMS structure
+        is assembled with asn1crypto (replicating OpenSSL's output, as pinned
+        down by the golden fixtures in tests/) while cryptography performs
+        the RSA-SHA1 signature itself, which it still supports.
         """
         cert = x509.load_pem_x509_certificate(self._read_file_bytes(certificate))
         if password is not None:
@@ -167,14 +176,134 @@ class ApplePass:
             self._read_file_bytes(wwdr_certificate)
         )
 
-        options = [pkcs7.PKCS7Options.DetachedSignature]
-        return (
-            pkcs7.PKCS7SignatureBuilder()
-            .set_data(manifest.encode("utf-8"))
-            .add_signer(cert, priv_key, hashes.SHA1())
-            .add_certificate(wwdr_cert)
-            .sign(serialization.Encoding.DER, options)
+        manifest_bytes = manifest.encode("utf-8")
+
+        # The S/MIME capabilities OpenSSL has historically included.
+        capabilities = asn1_cms.SMIMECapabilites(
+            [
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {"capability_id": "2.16.840.1.101.3.4.1.42"}  # aes-256-cbc
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {"capability_id": "2.16.840.1.101.3.4.1.22"}  # aes-192-cbc
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {"capability_id": "2.16.840.1.101.3.4.1.2"}  # aes-128-cbc
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {"capability_id": "1.2.840.113549.3.7"}  # des-ede3-cbc
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {
+                        "capability_id": "1.2.840.113549.3.2",  # rc2-cbc
+                        "parameters": asn1_core.Integer(128),
+                    }
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {
+                        "capability_id": "1.2.840.113549.3.2",  # rc2-cbc
+                        "parameters": asn1_core.Integer(64),
+                    }
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {"capability_id": "1.3.14.3.2.7"}  # des-cbc
+                ),
+                asn1_cms.SMIMECapabilityIdentifier(
+                    {
+                        "capability_id": "1.2.840.113549.3.2",  # rc2-cbc
+                        "parameters": asn1_core.Integer(40),
+                    }
+                ),
+            ]
         )
+
+        signed_attrs = asn1_cms.CMSAttributes(
+            [
+                asn1_cms.CMSAttribute({"type": "content_type", "values": ["data"]}),
+                asn1_cms.CMSAttribute(
+                    {
+                        "type": "signing_time",
+                        "values": [
+                            asn1_cms.Time(
+                                {
+                                    "utc_time": asn1_core.UTCTime(
+                                        datetime.now(timezone.utc)
+                                    )
+                                }
+                            )
+                        ],
+                    }
+                ),
+                asn1_cms.CMSAttribute(
+                    {
+                        "type": "message_digest",
+                        "values": [hashlib.sha1(manifest_bytes).digest()],
+                    }
+                ),
+                asn1_cms.CMSAttribute(
+                    {"type": "smime_capabilities", "values": [capabilities]}
+                ),
+            ]
+        )
+
+        # The signature covers the DER encoding of the signed attributes with
+        # the universal SET OF tag (not the [0] tag used inside SignerInfo).
+        signature = priv_key.sign(
+            signed_attrs.dump(), padding.PKCS1v15(), hashes.SHA1()
+        )
+
+        cert_asn1 = asn1_x509.Certificate.load(
+            cert.public_bytes(serialization.Encoding.DER)
+        )
+        wwdr_asn1 = asn1_x509.Certificate.load(
+            wwdr_cert.public_bytes(serialization.Encoding.DER)
+        )
+
+        signer_info = asn1_cms.SignerInfo(
+            {
+                "version": "v1",
+                "sid": asn1_cms.SignerIdentifier(
+                    {
+                        "issuer_and_serial_number": asn1_cms.IssuerAndSerialNumber(
+                            {
+                                "issuer": cert_asn1.issuer,
+                                "serial_number": cert_asn1.serial_number,
+                            }
+                        )
+                    }
+                ),
+                "digest_algorithm": asn1_cms.DigestAlgorithm({"algorithm": "sha1"}),
+                "signed_attrs": signed_attrs,
+                # rsaEncryption OID, as OpenSSL encodes it here
+                "signature_algorithm": asn1_cms.SignedDigestAlgorithm(
+                    {"algorithm": "1.2.840.113549.1.1.1"}
+                ),
+                "signature": signature,
+            }
+        )
+
+        signed_data = asn1_cms.SignedData(
+            {
+                "version": "v1",
+                "digest_algorithms": [
+                    asn1_cms.DigestAlgorithm({"algorithm": "sha1"})
+                ],
+                # Detached signature: no encapsulated content
+                "encap_content_info": asn1_cms.ContentInfo(
+                    {"content_type": "data"}
+                ),
+                "certificates": [
+                    asn1_cms.CertificateChoices({"certificate": cert_asn1}),
+                    asn1_cms.CertificateChoices({"certificate": wwdr_asn1}),
+                ],
+                "signer_infos": [signer_info],
+            }
+        )
+
+        content_info = asn1_cms.ContentInfo(
+            {"content_type": "signed_data", "content": signed_data}
+        )
+        return content_info.dump()
 
     # Creates .pkpass (zip archive)
     def _create_zip(self, pass_json, manifest, signature, output):

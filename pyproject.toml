@@ -19,13 +19,18 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = ["cryptography>=38.0.4"]
+# cryptography >= 40 blocks SHA1 in its PKCS7 builder, which Apple mandates;
+# signing is done via manual CMS construction (asn1crypto) instead.
+dependencies = ["asn1crypto>=1.5.1", "cryptography>=48.0.0"]
 
 [project.urls]
 Repository = "https://github.com/KalvadTech/apple-wallet-pass"
 
 [dependency-groups]
-dev = ["ruff>=0.8.1,<0.9"]
+dev = ["pytest>=8.3", "ruff>=0.8.1,<0.9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["uv_build>=0.12,<0.13"]
