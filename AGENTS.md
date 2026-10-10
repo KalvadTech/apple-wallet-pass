@@ -18,19 +18,19 @@ A `.pkpass` file is a ZIP archive containing:
 ## Technology stack
 
 - **Language:** Python `^3.11` (CI tests 3.11, 3.12, 3.13)
-- **Packaging/dependency management:** Poetry (`poetry-core` build backend, `src` layout)
-- **Local environment:** [mise](https://mise.jdx.dev/) — `.mise.toml` pins Python 3.13 and auto-creates a venv at `env/`
+- **Packaging/dependency management:** [uv](https://docs.astral.sh/uv/) (PEP 621 `pyproject.toml`, `uv_build` build backend, `src` layout)
+- **Local environment:** [mise](https://mise.jdx.dev/) — `.mise.toml` pins Python 3.13 + uv and auto-activates the venv at `.venv/`
 - **Runtime dependency:** `cryptography >= 38.0.4` (only one)
-- **Dev dependency:** `ruff ^0.8.1` (linter)
+- **Dev dependency:** `ruff >=0.8.1,<0.9` (linter), in the PEP 735 `dev` dependency group
 - **CI/CD:** GitHub Actions (`.github/workflows/`)
 
 ## Repository layout
 
 ```
-├── pyproject.toml              # Poetry project definition, dependencies
-├── poetry.lock                 # Locked dependency versions
+├── pyproject.toml              # PEP 621 project definition, dependencies
+├── uv.lock                     # Locked dependency versions
 ├── ruff.toml                   # Ruff linter configuration
-├── .mise.toml                  # mise: Python version + venv location
+├── .mise.toml                  # mise: Python + uv versions, venv location
 ├── .editorconfig               # Indentation, line length, isort settings
 ├── src/
 │   ├── __init__.py             # Empty
@@ -49,22 +49,22 @@ A `.pkpass` file is a ZIP archive containing:
 ## Build and test commands
 
 ```bash
-# Install dependencies (mise users: venv is created automatically at env/)
-poetry install
+# Install dependencies into .venv/ (mise users: auto-activated)
+uv sync
 
 # Lint (this is what CI runs — there is no separate test step)
-ruff check .
+uv run ruff check .
 
 # Build distribution archives
-poetry build
+uv build
 ```
 
-There is **no test suite** in this repository: no `tests/` directory, no pytest dependency, and CI only runs `poetry install` plus ruff. If you add tests, you will be introducing the testing setup from scratch — mention this in your change.
+There is **no test suite** in this repository: no `tests/` directory, no pytest dependency, and CI only runs `uv sync --locked` plus ruff. If you add tests, you will be introducing the testing setup from scratch — mention this in your change.
 
 ## CI and release process
 
-- **Build workflow** (`.github/workflows/build.yml`): runs on every push and pull request, on Python 3.11/3.12/3.13 (ubuntu-latest). Steps: checkout → setup Python → install Poetry → `poetry install` → `astral-sh/ruff-action@v1`. A change is only mergeable if it installs cleanly and passes ruff.
-- **Publish workflow** (`.github/workflows/publish.yml`): runs when a tag matching `*.*.*` is pushed. It builds with Poetry, publishes to PyPI using the `PYPI_TOKEN` secret, then creates a GitHub release with notes extracted from `docs/changelog.md`. Note: `docs/changelog.md` does **not** currently exist in the repo, so release-note extraction produces nothing until that file is created. When making a user-facing change, consider whether the changelog file needs to be added/updated and the version in `pyproject.toml` bumped.
+- **Build workflow** (`.github/workflows/build.yml`): runs on every push and pull request, on Python 3.11/3.12/3.13 (ubuntu-latest). Steps: checkout → `astral-sh/setup-uv@v6` (installs uv + the matrix Python) → `uv sync --locked` → `astral-sh/ruff-action@v1`. A change is only mergeable if it installs cleanly and passes ruff.
+- **Publish workflow** (`.github/workflows/publish.yml`): runs when a tag matching `*.*.*` is pushed. It builds with `uv build`, publishes to PyPI with `uv publish` using the `PYPI_TOKEN` secret (passed as `UV_PUBLISH_TOKEN`), then creates a GitHub release with notes extracted from `docs/changelog.md`. Note: `docs/changelog.md` does **not** currently exist in the repo, so release-note extraction produces nothing until that file is created. When making a user-facing change, consider whether the changelog file needs to be added/updated and the version in `pyproject.toml` bumped.
 - The PR template (`.github/pull_request_template.md`) asks contributors to update documentation and the changelog and to confirm the code is linted.
 
 ## Code style guidelines
