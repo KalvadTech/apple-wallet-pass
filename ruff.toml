@@ -2,3 +2,9 @@ exclude = ["env"]
 
 [lint]
 select = ["F", "S", "ERA", "I", "C90"]
+
+[lint.per-file-ignores]
+# Tests need plain asserts (S101), call the openssl CLI to verify
+# signatures (S603, binary resolved via shutil.which: S607), and use
+# hardcoded throwaway credentials for the test fixtures (S105, S106).
+"tests/**" = ["S101", "S105", "S106", "S603", "S607"]
